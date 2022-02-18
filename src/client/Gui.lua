@@ -14,6 +14,10 @@ local OnEvent = Fusion.OnEvent
 local State = Fusion.State
 local Computed = Fusion.Computed
 local Spring = Fusion.Spring
+local OnChange = Fusion.OnChange
+
+-- Constants --
+local DEF_FONT = Enum.Font.Gotham
 
 -- Components --
 local MenuItem = function( props )
@@ -29,7 +33,7 @@ local MenuItem = function( props )
         Size = UDim2.new( 0.5, 0, 1, 0 ),
         ClipsDescendants = true,
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        Font = Enum.Font.Gotham,
+        Font = DEF_FONT,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate = Enum.TextTruncate.AtEnd,
         TextSize = 16
@@ -83,6 +87,64 @@ local MenuItem = function( props )
                   end
                 }
               }
+            }
+          elseif Type == "string" then
+            -- TODO: need to fix position issues
+            local state = State(props.SettingDefault)
+
+            return New "TextBox" {
+              Name = "InputBox",
+              Size = UDim2.new( 0, 36, 0, 16 ),
+              BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
+              Position = UDim2.new( 0.5, 0, 0.5, 0 ),
+              AnchorPoint = Vector2.new( 0.5, 0.5 ),
+              ClearTextOnFocus = false,
+              Font = DEF_FONT,
+              TextXAlignment = Enum.TextXAlignment.Right,
+              TextYAlignment = Enum.TextYAlignment.Center,
+              TextColor3 = Color3.fromRGB(255, 255, 255),
+              PlaceholderText = props.SettingDefault,
+              PlaceholderColor3 = Color3.fromRGB(128, 128, 128),
+              TextSize = 14,
+              [ Children ] = {
+                New "UICorner" {
+                  CornerRadius = UDim.new( 0, 6 )
+                },
+              },
+              [ OnChange "Text"] = function(text)
+                state:set(text)
+              end
+            }
+          elseif Type == "number" then
+            -- TODO: need to fix position issues
+            local state = State(props.SettingDefault)
+
+            return New "TextBox" {
+              Name = "InputBox",
+              Size = UDim2.new( 0, 20, 0, 16 ),
+              BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
+              Position = UDim2.new( 0.5, 0, 0.5, 0 ),
+              AnchorPoint = Vector2.new( 0.5, 0.5 ),
+              ClearTextOnFocus = false,
+              Font = DEF_FONT,
+              TextXAlignment = Enum.TextXAlignment.Center,
+              TextYAlignment = Enum.TextYAlignment.Center,
+              TextColor3 = Color3.fromRGB(255, 255, 255),
+              PlaceholderText = tostring(props.SettingDefault),
+              PlaceholderColor3 = Color3.fromRGB(128, 128, 128),
+              TextSize = 14,
+              [ Children ] = {
+                New "UICorner" {
+                  CornerRadius = UDim.new( 0, 6 )
+                },
+              },
+              [ OnChange "Text"] = function(text)
+                local s, safeText = pcall(function()
+                  return tonumber(text)
+                end)
+                if not s then return end
+                state:set(safeText)
+              end
             }
           end
         end)()
@@ -141,6 +203,14 @@ return function ()
               MenuItem {
                 Name = "Testing 3",
                 SettingDefault = false
+              },
+              MenuItem {
+                Name = "Testing 4",
+                SettingDefault = "test"
+              },
+              MenuItem {
+                Name = "Testing 5",
+                SettingDefault = 0
               },
             }
           }
