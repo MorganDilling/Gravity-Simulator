@@ -41,7 +41,7 @@ local MenuItem = function( props )
       New "Frame" {
         Name = "SettingContainer",
         Size = UDim2.new( 0.2, 0, 1, 0 ),
-        Position = UDim2.new( 1, 0, 0.5, 0 ),
+        Position = UDim2.new( 1, -12, 0.5, 0 ),
         AnchorPoint = Vector2.new( 1, 0.5 ),
         BackgroundTransparency = 1,
         [ Children ] = (function()
@@ -57,8 +57,8 @@ local MenuItem = function( props )
               Name = "ToggleBG",
               Size = UDim2.new( 0, 28, 0, 16 ),
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
-              Position = UDim2.new( 0.5, 0, 0.5, 0 ),
-              AnchorPoint = Vector2.new( 0.5, 0.5 ),
+              Position = UDim2.new( 1, 0, 0.5, 0 ),
+              AnchorPoint = Vector2.new( 1, 0.5 ),
               [ Children ] = {
                 New "UICorner" {
                   CornerRadius = UDim.new( 1, 0 )
@@ -89,15 +89,14 @@ local MenuItem = function( props )
               }
             }
           elseif Type == "string" then
-            -- TODO: need to fix position issues
             local state = State(props.SettingDefault)
 
             return New "TextBox" {
               Name = "InputBox",
-              Size = UDim2.new( 0, 36, 0, 16 ),
+              Size = UDim2.new( 0, 150, 0, 16 ),
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
-              Position = UDim2.new( 0.5, 0, 0.5, 0 ),
-              AnchorPoint = Vector2.new( 0.5, 0.5 ),
+              Position = UDim2.new( 1, 0, 0.5, 0 ),
+              AnchorPoint = Vector2.new( 1, 0.5 ),
               ClearTextOnFocus = false,
               Font = DEF_FONT,
               TextXAlignment = Enum.TextXAlignment.Right,
@@ -105,6 +104,7 @@ local MenuItem = function( props )
               TextColor3 = Color3.fromRGB(255, 255, 255),
               PlaceholderText = props.SettingDefault,
               PlaceholderColor3 = Color3.fromRGB(128, 128, 128),
+              ClipsDescendants = true,
               TextSize = 14,
               [ Children ] = {
                 New "UICorner" {
@@ -116,15 +116,14 @@ local MenuItem = function( props )
               end
             }
           elseif Type == "number" then
-            -- TODO: need to fix position issues
             local state = State(props.SettingDefault)
 
             return New "TextBox" {
               Name = "InputBox",
               Size = UDim2.new( 0, 20, 0, 16 ),
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
-              Position = UDim2.new( 0.5, 0, 0.5, 0 ),
-              AnchorPoint = Vector2.new( 0.5, 0.5 ),
+              Position = UDim2.new( 1, 0, 0.5, 0 ),
+              AnchorPoint = Vector2.new( 1, 0.5 ),
               ClearTextOnFocus = false,
               Font = DEF_FONT,
               TextXAlignment = Enum.TextXAlignment.Center,
@@ -132,6 +131,7 @@ local MenuItem = function( props )
               TextColor3 = Color3.fromRGB(255, 255, 255),
               PlaceholderText = tostring(props.SettingDefault),
               PlaceholderColor3 = Color3.fromRGB(128, 128, 128),
+              ClipsDescendants = true,
               TextSize = 14,
               [ Children ] = {
                 New "UICorner" {
