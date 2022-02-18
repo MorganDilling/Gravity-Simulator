@@ -7,6 +7,9 @@ local Players = game:GetService( "Players" )
 -- Modules --
 local Fusion = require( ReplicatedStorage.Common.Fusion )
 
+-- Module --
+local UI = {}
+
 -- Fusion --
 local New = Fusion.New
 local Children = Fusion.Children
@@ -17,13 +20,15 @@ local Spring = Fusion.Spring
 local OnChange = Fusion.OnChange
 
 -- States --
-local Settings = {}
+UI.Settings = {}
 
 -- Constants --
 local DEF_FONT = Enum.Font.Gotham
 
 -- Components --
 local MenuItem = function( props )
+  UI.Settings[props.Name] = State( props.SettingDefault ) -- state
+
   return New "Frame" {
     Name = props.Name,
     BackgroundTransparency = 1,
@@ -31,7 +36,9 @@ local MenuItem = function( props )
     [ Children ] = {
       New "TextLabel" {
         Name = "Title",
-        Text = props.Name,
+        Text = Computed(function()
+          return props.Name .. ": " .. tostring( UI.Settings[props.Name]:get() )
+        end),
         BackgroundTransparency = 1,
         Size = UDim2.new( 0.5, 0, 1, 0 ),
         ClipsDescendants = true,
@@ -39,6 +46,7 @@ local MenuItem = function( props )
         Font = DEF_FONT,
         TextXAlignment = Enum.TextXAlignment.Left,
         TextTruncate = Enum.TextTruncate.AtEnd,
+        ZIndex = 3,
         TextSize = 16
       },
       New "Frame" {
@@ -47,13 +55,13 @@ local MenuItem = function( props )
         Position = UDim2.new( 1, 0, 0.5, 0 ),
         AnchorPoint = Vector2.new( 1, 0.5 ),
         BackgroundTransparency = 1,
+        ZIndex = 3,
         [ Children ] = (function()
           local Type = type( props.SettingDefault )
           local Name = props.Name
-          Settings[Name] = State( props.SettingDefault ) -- state
 
           if Type == "boolean" then
-            local toggle = State( ({ [ false ] = 0, [ true ] = 1 })[ Settings[Name]:get() ] )
+            local toggle = State( ({ [ false ] = 0, [ true ] = 1 })[ UI.Settings[Name]:get() ] )
 
             local toggleSpring = Spring( toggle, 13 )
 
@@ -63,6 +71,7 @@ local MenuItem = function( props )
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
               Position = UDim2.new( 1, 0, 0.5, 0 ),
               AnchorPoint = Vector2.new( 1, 0.5 ),
+              ZIndex = 4,
               [ Children ] = {
                 New "UICorner" {
                   CornerRadius = UDim.new( 1, 0 )
@@ -70,8 +79,9 @@ local MenuItem = function( props )
                 New "ImageButton" {
                   Name = "ToggleBG",
                   Size = UDim2.new( 0, 16, 0, 16 ),
+                  ZIndex = 5,
                   BackgroundColor3 = Computed(function()
-                    return ({ [ false ] = Color3.fromRGB(228, 62, 62), [ true ] = Color3.fromRGB(126, 226, 79) })[ Settings[Name]:get() ] -- chooses either red or green based on state
+                    return ({ [ false ] = Color3.fromRGB(228, 62, 62), [ true ] = Color3.fromRGB(126, 226, 79) })[ UI.Settings[Name]:get() ] -- chooses either red or green based on state
                   end),
                   Position = Computed(function()
                     return UDim2.fromScale( toggleSpring:get(), 0.5)
@@ -85,8 +95,8 @@ local MenuItem = function( props )
                     },
                   },
                   [ OnEvent "Activated" ] = function()
-                    Settings[Name]:set( not Settings[Name]:get() )
-                    toggle:set( Settings[Name]:get() == false and 0 or 1 )
+                    UI.Settings[Name]:set( not UI.Settings[Name]:get() )
+                    toggle:set( UI.Settings[Name]:get() == false and 0 or 1 )
                   end
                 }
               }
@@ -98,6 +108,7 @@ local MenuItem = function( props )
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
               Position = UDim2.new( 1, 0, 0.5, 0 ),
               AnchorPoint = Vector2.new( 1, 0.5 ),
+              ZIndex = 4,
               ClearTextOnFocus = false,
               Font = DEF_FONT,
               TextXAlignment = Enum.TextXAlignment.Right,
@@ -114,10 +125,10 @@ local MenuItem = function( props )
               },
               [ OnChange "Text"] = function( text )
                 if text == "" then
-                  Settings[Name]:set( props.SettingDefault ) -- set to default
+                  UI.Settings[Name]:set( props.SettingDefault ) -- set to default
                   return -- exit function
                 end
-                Settings[Name]:set( text )
+                UI.Settings[Name]:set( text )
               end
             }
           elseif Type == "number" then
@@ -127,6 +138,7 @@ local MenuItem = function( props )
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
               Position = UDim2.new( 1, 0, 0.5, 0 ),
               AnchorPoint = Vector2.new( 1, 0.5 ),
+              ZIndex = 4,
               ClearTextOnFocus = false,
               Font = DEF_FONT,
               TextXAlignment = Enum.TextXAlignment.Center,
@@ -143,15 +155,15 @@ local MenuItem = function( props )
               },
               [ OnChange "Text"] = function( text )
                 if text == "" then
-                  Settings[Name]:set( props.SettingDefault ) -- set to default
+                  UI.Settings[Name]:set( props.SettingDefault ) -- set to default
                   return -- exit function
                 end
 
                 local s, safeText = pcall(function()
                   return tonumber( text )
                 end)
-                if not s then return end
-                Settings[Name]:set( safeText )
+                if not s then UI.Settings[Name]:set( props.SettingDefault ); return; end
+                UI.Settings[Name]:set( safeText )
               end
             }
           end
@@ -162,25 +174,36 @@ local MenuItem = function( props )
 end
 
 -- Initialisation --
-return function ()
+function UI.UI ()
 
   return New "ScreenGui" {
     Parent = Players.LocalPlayer.PlayerGui,
     Name = "Gui",
+    IgnoreGuiInset = true,
+    ZIndexBehavior = Enum.ZIndexBehavior.Global,
     
     [ Children ] = {
       New "Frame" {
         Name = "Container",
         Size = UDim2.new( 1, 0, 1, 0 ),
-        BackgroundTransparency = 1,
+        ZIndex = -1,
+        -- BackgroundTransparency = 0,
         [ Children ] = {
+          New "UIGradient" {
+            Color = ColorSequence.new {
+              ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+              ColorSequenceKeypoint.new(1, Color3.fromRGB(173, 173, 173))
+            },
+            Rotation = 90
+          },
           New "Frame" {
             Name = "Menu",
             BackgroundTransparency = 0.35,
             BackgroundColor3 = Color3.fromRGB( 0, 0, 0 ),
-            Position = UDim2.new( 0, 16, 0, 10 ),
-            Size = UDim2.new( 0.3, 0, 0, 0 ),
+            Position = UDim2.new( 0, 16, 0, 46 ),
+            Size = UDim2.new( 0.2, 0, 0, 0 ),
             AutomaticSize = Enum.AutomaticSize.Y,
+            ZIndex = 2,
             [ Children ] = {
               New "UICorner" {
                 CornerRadius = UDim.new( 0, 8 )
@@ -196,7 +219,7 @@ return function ()
                 SortOrder = Enum.SortOrder.Name,
                 Padding = UDim.new( 0, 3 )
               },
-              -- Settings
+              -- UI.Settings
               MenuItem {
                 Name = "Gravity",
                 SettingDefault = -9.807
@@ -212,3 +235,28 @@ return function ()
     }
   }
 end
+
+-- interactable cube
+UI.cube = New "ImageButton" {
+  Name = "Cube",
+  AnchorPoint = Vector2.new( 0.5, 0.5 ),
+  Size = UDim2.new( 0, 100, 0, 100 ),
+  Position = UDim2.new( 0.5, 0, 0.5, 0 ),
+  ZIndex = 1,
+  Image = "rbxassetid://8860016498",
+  BackgroundTransparency = 1,
+  [ Children ] = {
+    New "ImageLabel" {
+      Name = "Drop Shadow",
+      Size = UDim2.new( 1, 20, 1, 20 ),
+      AnchorPoint = Vector2.new( 0.5, 0.5 ),
+      Position = UDim2.new( 0.5, 0, 0.5, 0 ),
+      BackgroundTransparency = 1,
+      ImageTransparency = 0.7,
+      ZIndex = 0,
+      Image = "rbxassetid://8859909186"
+    }
+  }
+}
+
+return UI
