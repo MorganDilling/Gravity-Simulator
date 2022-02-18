@@ -16,6 +16,9 @@ local Computed = Fusion.Computed
 local Spring = Fusion.Spring
 local OnChange = Fusion.OnChange
 
+-- States --
+local Settings = {}
+
 -- Constants --
 local DEF_FONT = Enum.Font.Gotham
 
@@ -41,15 +44,16 @@ local MenuItem = function( props )
       New "Frame" {
         Name = "SettingContainer",
         Size = UDim2.new( 0.2, 0, 1, 0 ),
-        Position = UDim2.new( 1, -12, 0.5, 0 ),
+        Position = UDim2.new( 1, 0, 0.5, 0 ),
         AnchorPoint = Vector2.new( 1, 0.5 ),
         BackgroundTransparency = 1,
         [ Children ] = (function()
-          local Type = type(props.SettingDefault)
-          if Type == "boolean" then
-            local state = State(props.SettingDefault)
+          local Type = type( props.SettingDefault )
+          local Name = props.Name
+          Settings[Name] = State( props.SettingDefault ) -- state
 
-            local toggle = State( 0 )
+          if Type == "boolean" then
+            local toggle = State( ({ [ false ] = 0, [ true ] = 1 })[ Settings[Name]:get() ] )
 
             local toggleSpring = Spring( toggle, 13 )
 
@@ -67,8 +71,7 @@ local MenuItem = function( props )
                   Name = "ToggleBG",
                   Size = UDim2.new( 0, 16, 0, 16 ),
                   BackgroundColor3 = Computed(function()
-                    local state = state:get();
-                    return ({[ false ] = Color3.fromRGB(228, 62, 62), [ true ] = Color3.fromRGB(126, 226, 79)})[state] -- chooses either red or green based on state
+                    return ({ [ false ] = Color3.fromRGB(228, 62, 62), [ true ] = Color3.fromRGB(126, 226, 79) })[ Settings[Name]:get() ] -- chooses either red or green based on state
                   end),
                   Position = Computed(function()
                     return UDim2.fromScale( toggleSpring:get(), 0.5)
@@ -82,15 +85,13 @@ local MenuItem = function( props )
                     },
                   },
                   [ OnEvent "Activated" ] = function()
-                    state:set(not state:get())
-                    toggle:set(state:get() == false and 0 or 1)
+                    Settings[Name]:set( not Settings[Name]:get() )
+                    toggle:set( Settings[Name]:get() == false and 0 or 1 )
                   end
                 }
               }
             }
           elseif Type == "string" then
-            local state = State(props.SettingDefault)
-
             return New "TextBox" {
               Name = "InputBox",
               Size = UDim2.new( 0, 150, 0, 16 ),
@@ -111,16 +112,18 @@ local MenuItem = function( props )
                   CornerRadius = UDim.new( 0, 6 )
                 },
               },
-              [ OnChange "Text"] = function(text)
-                state:set(text)
+              [ OnChange "Text"] = function( text )
+                if text == "" then
+                  Settings[Name]:set( props.SettingDefault ) -- set to default
+                  return -- exit function
+                end
+                Settings[Name]:set( text )
               end
             }
           elseif Type == "number" then
-            local state = State(props.SettingDefault)
-
             return New "TextBox" {
               Name = "InputBox",
-              Size = UDim2.new( 0, 20, 0, 16 ),
+              Size = UDim2.new( 0, 48, 0, 16 ),
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
               Position = UDim2.new( 1, 0, 0.5, 0 ),
               AnchorPoint = Vector2.new( 1, 0.5 ),
@@ -129,7 +132,7 @@ local MenuItem = function( props )
               TextXAlignment = Enum.TextXAlignment.Center,
               TextYAlignment = Enum.TextYAlignment.Center,
               TextColor3 = Color3.fromRGB(255, 255, 255),
-              PlaceholderText = tostring(props.SettingDefault),
+              PlaceholderText = tostring( props.SettingDefault ),
               PlaceholderColor3 = Color3.fromRGB(128, 128, 128),
               ClipsDescendants = true,
               TextSize = 14,
@@ -138,12 +141,17 @@ local MenuItem = function( props )
                   CornerRadius = UDim.new( 0, 6 )
                 },
               },
-              [ OnChange "Text"] = function(text)
+              [ OnChange "Text"] = function( text )
+                if text == "" then
+                  Settings[Name]:set( props.SettingDefault ) -- set to default
+                  return -- exit function
+                end
+
                 local s, safeText = pcall(function()
-                  return tonumber(text)
+                  return tonumber( text )
                 end)
                 if not s then return end
-                state:set(safeText)
+                Settings[Name]:set( safeText )
               end
             }
           end
@@ -171,7 +179,7 @@ return function ()
             BackgroundTransparency = 0.35,
             BackgroundColor3 = Color3.fromRGB( 0, 0, 0 ),
             Position = UDim2.new( 0, 16, 0, 10 ),
-            Size = UDim2.new( 0.3, 0, 0.3, 0 ),
+            Size = UDim2.new( 0.3, 0, 0, 0 ),
             AutomaticSize = Enum.AutomaticSize.Y,
             [ Children ] = {
               New "UICorner" {
@@ -188,29 +196,14 @@ return function ()
                 SortOrder = Enum.SortOrder.Name,
                 Padding = UDim.new( 0, 3 )
               },
+              -- Settings
               MenuItem {
-                Name = "Testing 0",
+                Name = "Gravity",
+                SettingDefault = -9.807
+              },
+              MenuItem {
+                Name = "Freeze",
                 SettingDefault = false
-              },
-              MenuItem {
-                Name = "Testing 1",
-                SettingDefault = false
-              },
-              MenuItem {
-                Name = "Testing 2",
-                SettingDefault = false
-              },
-              MenuItem {
-                Name = "Testing 3",
-                SettingDefault = false
-              },
-              MenuItem {
-                Name = "Testing 4",
-                SettingDefault = "test"
-              },
-              MenuItem {
-                Name = "Testing 5",
-                SettingDefault = 0
               },
             }
           }
