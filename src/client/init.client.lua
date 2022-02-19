@@ -31,12 +31,33 @@ Cube.Parent = Gui.Container
 -- Dragging variables --
 local Dragging: boolean = false
 local DragInput: InputObject
-local DragStart: UDim2
-local StartPos: UDim2
+local DragStart: Vector3
+local StartPos: Vector3
 
-local function cubeUpdate (input: InputObject): nil
-  local delta: UDim2 = input.Position - DragStart
-  Cube.Position = UDim2.new(StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y)
+local function cubeInputUpdate (input: InputObject): nil
+  local delta: Vector3 = input.Position - DragStart
+  local Position = UDim2.new( StartPos.X.Scale, StartPos.X.Offset + delta.X, StartPos.Y.Scale, StartPos.Y.Offset + delta.Y )
+  
+  local AbSize = Cube.AbsoluteSize
+  local AbPos = {
+      X = Position.X.Scale * Cube.Parent.AbsoluteSize.X + Position.X.Offset - AbSize.X * Cube.AnchorPoint.X,
+      Y = Position.Y.Scale * Cube.Parent.AbsoluteSize.Y + Position.Y.Offset - AbSize.Y * Cube.AnchorPoint.Y
+  }
+
+  local ScreenX = Camera.ViewportSize.X
+  local ScreenY = Camera.ViewportSize.Y
+  local TopbarOffset = 0 -- 36
+
+  local Left = AbPos.X
+  local Right = AbPos.X + AbSize.X
+  local Top = AbPos.Y + TopbarOffset
+  local Bottom = AbPos.Y + AbSize.Y + TopbarOffset
+
+  local Outside = Left < 0 or Top < 0 or Right > ScreenX or Bottom > ScreenY
+
+  if Outside then return end
+
+  Cube.Position = Position
 end
 
 Cube.InputBegan:Connect(function(input)
@@ -61,6 +82,6 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
     if input == DragInput and Dragging then
-        cubeUpdate(input)
+        cubeInputUpdate(input)
     end
 end)

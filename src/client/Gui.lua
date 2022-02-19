@@ -104,7 +104,7 @@ local MenuItem = function( props )
           elseif Type == "string" then
             return New "TextBox" {
               Name = "InputBox",
-              Size = UDim2.new( 0, 150, 0, 16 ),
+              Size = UDim2.new( 0, 100, 0, 16 ),
               BackgroundColor3 = Color3.fromRGB( 94, 94, 94 ),
               Position = UDim2.new( 1, 0, 0.5, 0 ),
               AnchorPoint = Vector2.new( 1, 0.5 ),
@@ -201,7 +201,7 @@ function UI.UI ()
             BackgroundTransparency = 0.35,
             BackgroundColor3 = Color3.fromRGB( 0, 0, 0 ),
             Position = UDim2.new( 0, 16, 0, 46 ),
-            Size = UDim2.new( 0.2, 0, 0, 0 ),
+            Size = UDim2.new( 0.3, 0, 0, 0 ),
             AutomaticSize = Enum.AutomaticSize.Y,
             ZIndex = 2,
             [ Children ] = {
@@ -227,6 +227,10 @@ function UI.UI ()
               MenuItem {
                 Name = "Freeze",
                 SettingDefault = false
+              },
+              MenuItem {
+                Name = "Scream On Hit",
+                SettingDefault = "527970724"
               },
             }
           }
